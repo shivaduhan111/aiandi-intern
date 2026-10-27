@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clef Moderation Report - comments-v2.json</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 24px;
+            line-height: 1.5;
+        }
+        .container { max-width: 1040px; margin: 0 auto; }
+        header {
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        h1 { font-size: 1.6rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+        .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 16px; }
+        .stats-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+        .stat-pill {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            color: #334155;
+        }
+        .controls-sticky {
+            position: sticky;
+            top: 12px;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .filter-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+        .btn {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn:hover { background: #f1f5f9; }
+        .btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .search-input {
+            padding: 7px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            width: 240px;
+            outline: none;
+        }
+        .comment-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 14px;
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .meta-left { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+        .comment-id {
+            font-weight: 700;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .author-name { color: #1e293b; }
+        .thread-badge { background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px; font-size: 0.78rem; }
+        .timestamp { color: #94a3b8; font-size: 0.8rem; }
+        .meta-right { display: flex; align-items: center; gap: 10px; }
+        .category-badge {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .confidence-tag { font-size: 0.8rem; font-weight: 600; color: #475569; }
+        .comment-body { font-size: 0.95rem; color: #1e293b; margin-bottom: 14px; line-height: 1.6; }
+        .card-footer { border-top: 1px solid #f1f5f9; padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+        .confidence-bar-bg { height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; width: 100%; }
+        .confidence-bar-fill { height: 100%; background: var(--primary); border-radius: 2px; }
+        .prob-distribution { font-size: 0.78rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 6px; }
+        .prob-pill { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Clef Moderation Report - Harder Evaluation</h1>
+            <p class="subtitle">Dataset: <strong>comments-v2.json</strong> &bull; Model: <strong>clef</strong> &bull; Course: <em>CS307 Applied AI Lab</em></p>
+            <div class="stats-bar">
+                <span class="stat-pill"><strong>Total:</strong> 15 evaluated</span>
+                <span class="stat-pill"><strong>Avg Conf:</strong> 85.1%</span>
+                <span class="stat-pill"><strong>Constructive:</strong> 5</span>
+                <span class="stat-pill"><strong>Question:</strong> 4</span>
+                <span class="stat-pill"><strong>Off-Topic:</strong> 2</span>
+                <span class="stat-pill"><strong>Abusive:</strong> 2</span>
+                <span class="stat-pill"><strong>Praise:</strong> 1</span>
+                <span class="stat-pill"><strong>Spam:</strong> 1</span>
+            </div>
+        </header>
+
+        <div class="controls-sticky">
+            <div class="controls-row">
+                <div class="filter-buttons" id="filter-buttons">
+                    <button class="btn active" data-filter="all">All</button>
+                    <button class="btn" data-filter="spam">Spam</button>
+                    <button class="btn" data-filter="abusive">Abusive</button>
+                    <button class="btn" data-filter="off-topic">Off-Topic</button>
+                    <button class="btn" data-filter="constructive">Constructive</button>
+                    <button class="btn" data-filter="praise">Praise</button>
+                    <button class="btn" data-filter="question/help-needed">Question/Help</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="sort-conf-btn">Sort: Lowest Confidence First</button>
+                    <input type="text" id="search-box" class="search-input" placeholder="Search comments / authors...">
+                </div>
+            </div>
+        </div>
+
+        <div id="comments-container">
+            <!-- Comment 1 -->
+            <div class="comment-card" data-category="question/help-needed" data-confidence="0.9500" data-id="1">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#1</span>
+                        <strong class="author-name">Arnav Deshmukh</strong>
+                        <span class="thread-badge">Doubts</span>
+                        <span class="timestamp">2026-11-02 09:05</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#fef3c7; color:#92400e; border:1px solid #fbbf24;">question/help-needed</span>
+                        <span class="confidence-tag">Conf: 95.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">Sir, for assignment 4 can we evaluate the free Gemini or does it have to be ChatGPT? I don't have a paid plan for either.</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 95%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">question/help-needed: 95.0%</span> <span class="prob-pill">off-topic: 2.1%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 2 -->
+            <div class="comment-card" data-category="question/help-needed" data-confidence="0.5200" data-id="2">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#2</span>
+                        <strong class="author-name">Prof. Sunita Rao</strong>
+                        <span class="thread-badge">Doubts</span>
+                        <span class="timestamp">2026-11-02 09:46</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#fef3c7; color:#92400e; border:1px solid #fbbf24;">question/help-needed</span>
+                        <span class="confidence-tag">Conf: 52.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">Any free chatbot is fine. Say which one and which date you tested it, since answers change over time.</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 52%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">question/help-needed: 52.0%</span> <span class="prob-pill">constructive: 42.0%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 3 -->
+            <div class="comment-card" data-category="constructive" data-confidence="0.8800" data-id="3">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#3</span>
+                        <strong class="author-name">Lavanya Menon</strong>
+                        <span class="thread-badge">Share your work</span>
+                        <span class="timestamp">2026-11-02 10:09</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#dcfce7; color:#166534; border:1px solid #4ade80;">constructive</span>
+                        <span class="confidence-tag">Conf: 88.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">We tested ChatGPT (free plan) on 30 questions taken straight from our college FAQ page. Overall it did better than we expected, especially on hostel timings.</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 88%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">constructive: 88.0%</span> <span class="prob-pill">praise: 8.5%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 6 -->
+            <div class="comment-card" data-category="spam" data-confidence="0.9900" data-id="6">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#6</span>
+                        <strong class="author-name">EasyMarks Academy</strong>
+                        <span class="thread-badge">General</span>
+                        <span class="timestamp">2026-11-02 12:05</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#fee2e2; color:#991b1b; border:1px solid #f87171;">spam</span>
+                        <span class="confidence-tag">Conf: 99.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">📚 Assignment 4 READY-MADE evaluation reports available!! 40 test questions + rubric + analysis, plagiarism free. Only ₹249. DM on Telegram @easymarks_support</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 99%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">spam: 99.0%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 7 -->
+            <div class="comment-card" data-category="abusive" data-confidence="0.6800" data-id="7">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#7</span>
+                        <strong class="author-name">Rishi Jain</strong>
+                        <span class="thread-badge">Doubts</span>
+                        <span class="timestamp">2026-11-02 13:40</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#ffe4e6; color:#881337; border:1px solid #fb7185;">abusive</span>
+                        <span class="confidence-tag">Conf: 68.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">Ugh I'm genuinely the dumbest person in this batch. Deleted my whole .env file and lost the API key, now Cloudflare won't show it again...</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 68%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">abusive: 68.0%</span> <span class="prob-pill">question/help-needed: 27.0%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 8 -->
+            <div class="comment-card" data-category="constructive" data-confidence="0.9100" data-id="8">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#8</span>
+                        <strong class="author-name">Farhan Qureshi</strong>
+                        <span class="thread-badge">Doubts</span>
+                        <span class="timestamp">2026-11-02 14:09</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#dcfce7; color:#166534; border:1px solid #4ade80;">constructive</span>
+                        <span class="confidence-tag">Conf: 91.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">@Rishi happens to everyone. Just create a new token from the dashboard and revoke the old one, takes 2 minutes.</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 91%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">constructive: 91.0%</span> <span class="prob-pill">praise: 5.5%</span></div>
+                </div>
+            </div>
+
+            <!-- Comment 10 -->
+            <div class="comment-card" data-category="constructive" data-confidence="0.4900" data-id="10">
+                <div class="card-header">
+                    <div class="meta-left">
+                        <span class="comment-id">#10</span>
+                        <strong class="author-name">Manav Jain</strong>
+                        <span class="thread-badge">Share your work</span>
+                        <span class="timestamp">2026-11-02 15:22</span>
+                    </div>
+                    <div class="meta-right">
+                        <span class="category-badge" style="background:#dcfce7; color:#166534; border:1px solid #4ade80;">constructive</span>
+                        <span class="confidence-tag">Conf: 49.0%</span>
+                    </div>
+                </div>
+                <div class="comment-body">@Aditi your rubric is so basic even my 10 year old cousin could make it. How did this take you a whole weekend?</div>
+                <div class="card-footer">
+                    <div class="confidence-bar-bg"><div class="confidence-bar-fill" style="width: 49%;"></div></div>
+                    <div class="prob-distribution"><small><strong>Distribution:</strong></small> <span class="prob-pill">constructive: 49.0%</span> <span class="prob-pill">abusive: 45.0%</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cards = Array.from(document.querySelectorAll('.comment-card'));
+        const container = document.getElementById('comments-container');
+        const filterBtns = document.querySelectorAll('.filter-buttons .btn');
+        const searchBox = document.getElementById('search-box');
+        const sortConfBtn = document.getElementById('sort-conf-btn');
+        let activeFilter = 'all';
+        let isSortedLowConf = false;
+
+        function updateView() {
+            const query = searchBox.value.toLowerCase().trim();
+            cards.forEach(card => {
+                const cat = card.getAttribute('data-category');
+                const text = card.textContent.toLowerCase();
+                const matchesFilter = (activeFilter === 'all' || cat === activeFilter);
+                const matchesSearch = (!query || text.includes(query));
+                card.style.display = (matchesFilter && matchesSearch) ? 'block' : 'none';
+            });
+        }
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                activeFilter = btn.getAttribute('data-filter');
+                updateView();
+            });
+        });
+
+        searchBox.addEventListener('input', updateView);
+
+        sortConfBtn.addEventListener('click', () => {
+            isSortedLowConf = !isSortedLowConf;
+            if (isSortedLowConf) {
+                sortConfBtn.textContent = 'Sort: Reset Natural Order';
+                sortConfBtn.classList.add('active');
+                cards.sort((a, b) => parseFloat(a.dataset.confidence) - parseFloat(b.dataset.confidence));
+            } else {
+                sortConfBtn.textContent = 'Sort: Lowest Confidence First';
+                sortConfBtn.classList.remove('active');
+                cards.sort((a, b) => parseInt(a.dataset.id) - parseInt(b.dataset.id));
+            }
+            cards.forEach(card => container.appendChild(card));
+        });
+    </script>
+</body>
+</html>
